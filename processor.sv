@@ -115,7 +115,7 @@ module processor #(parameter bus = 32)
 	
 	logic [bus-1:0] word, modified_word;
 	
-	Muxr #(bus) MUX_STR_LDR(memdatain,regc,MEM_OP_TYPE,word);
+	Muxr #(bus) MUX_STR_LDR(regc,memdatain,MEM_OP_TYPE,word);
 	
 	BHWord #(bus) _bhword(word, MEM_MODIF,modified_word);
 	
