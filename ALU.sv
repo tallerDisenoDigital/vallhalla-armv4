@@ -5,9 +5,9 @@ module ALU #(parameter bus = 4) (input logic [bus-1:0]a,b,input logic [3:0] ALUF
 	logic Co,No,Vo,Zo;
 	
 	assign Ci = CNVZI[3];
-	assign Ni = CNVZI[2];
-	assign Vi = CNVZI[1];
-	assign Zi = CNVZI[0];
+	//assign Ni = CNVZI[2];
+	//assign Vi = CNVZI[1];
+	//assign Zi = CNVZI[0];
 	
 	
 	assign CNVZO[3] = Co;
@@ -22,14 +22,14 @@ module ALU #(parameter bus = 4) (input logic [bus-1:0]a,b,input logic [3:0] ALUF
 	ALUController #(bus) _alucontroller(ALUFUN,selrev,selc1,selc,selop,selmov,selnot,selc3);
 	
 	
-	logic [bus-1:0] second_and_operand;
+	logic [bus-1:0] first_and_operand;
 	logic [bus-1:0] andout,orout,xorout, notout, addout,c1out;
 	
 	logic [bus-1:0] reva,revb;
 	
-	Muxr #(bus) _muxand(b,a,selmov,second_and_operand);
+	Muxr #(bus) _muxand(a,b,selmov,first_and_operand);
 	
-	Andr #(bus) _and(a,second_and_operand,andout);
+	Andr #(bus) _and(first_and_operand,b,andout);
 	
 	Orr #(bus) _or(a,c1out,orout);
 	Eor #(bus) _eor(a,b,xorout);
@@ -67,11 +67,14 @@ module ALU #(parameter bus = 4) (input logic [bus-1:0]a,b,input logic [3:0] ALUF
 	//Nandr #(bus) _c1comp2(zeroext,c1flagout2,cparamext);
 	Eor #(bus) _c1comp2(zeroext,c1flagout2,cparamext);
 	
-	assign Co = cout & selop[0]& selop[1];
-	assign Zo = ~| s;
-	assign No = s[bus-1] & selop[0]& selop[1];
+	logic arithmetic_operation;
+	assign arithmetic_operation = selop[0]& selop[1];
 	
-	//por el momento 
-	assign Vo = selop[0] & selop[1];
+	assign Co = cout & arithmetic_operation;
+	assign Zo = ~| s;
+	assign No = s[bus-1] & arithmetic_operation;
+	
+	//verificar implementacion del overflow!
+	assign Vo = arithmetic_operation & ~(reva[bus-1] ^ revb[bus-1]) & (reva[bus-1] ^ s[bus-1]) & ~ selc1;
 
 endmodule
