@@ -8,12 +8,17 @@ module processor_tb ();
 	
 	initial begin
 		
+		//Mov instructions
+		
+		//MOV 
 		instruction = 32'HE3E00017;
 		clk = 1;
 		#500;
 		clk = 0;
 		#500;
-
+		
+		
+		
 		
 		
 		clk = 1;
@@ -41,13 +46,7 @@ module processor_tb ();
 		clk = 0;
 		#500;
 		
-		/*
-		clk = 1;
-		instruction = 32'HE3E00017;
-		#500;
-		clk = 0;
-		#500;
-		*/
+		
 		clk = 1;
 		instruction = 32'HEA000004;
 		#500;

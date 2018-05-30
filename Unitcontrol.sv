@@ -63,7 +63,11 @@ module Unitcontrol #(parameter bus = 4)
  		
 		
 		//operand b flag
-		assign SELOPERANDB = ~(op[0] & I_data_processing);
+		
+		logic I_mem_instruction;
+		assign I_mem_instruction = funct[5];
+		
+		assign SELOPERANDB = ~(op[0] & ~I_mem_instruction);
 		
 		
 		//ALU FLAGS
@@ -118,10 +122,7 @@ module Unitcontrol #(parameter bus = 4)
 		assign WE = ((~op[1] & ~op[0] & ~is_RD_equal_to_PC & condflag) | (~op[1] & op[0] & L_mem_instruction & ~is_RD_equal_to_PC & condflag)) | (SELBL & condflag);
 		
 		//SEL NEW PC DIRECTION
-		assign SELBRANCHDIR = op[1] & condflag;		
-		assign SELPC = is_RD_equal_to_PC & condflag;
-		
-		assign SELDESTPC = op[0];
+		assign SELBRANCHDIR = op[1] & condflag;
 		
 		//memory flags
 		
@@ -129,6 +130,14 @@ module Unitcontrol #(parameter bus = 4)
 		assign memop=  ~op[1] & op[0];
 		assign MRE = memop & L_mem_instruction;
 		assign MWE = memop & ~L_mem_instruction;
+		
+		
+		//assign SELPC = is_RD_equal_to_PC & condflag;
+		//FIX: 
+		assign SELPC = ((is_RD_equal_to_PC & ~op[1] & ~op[0]) | MRE) & condflag;
+		
+		assign SELDESTPC = op[0];
+		
 		
 		//write enable of CPSR
 		logic S_data_processing;

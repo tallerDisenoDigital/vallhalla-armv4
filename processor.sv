@@ -1,5 +1,5 @@
 module processor #(parameter bus = 32) 
-(input logic clk,input logic[bus-1:0] instruction,memdatain, output logic[bus-1:0] pcdir,memdataout,memdir,output logic MRE,MWE);
+(input logic clk,reset,input logic[bus-1:0] instruction,memdatain, output logic[bus-1:0] pcdir,memdataout,memdir,output logic MRE,MWE);
 
 
 	//instruction data
@@ -134,10 +134,18 @@ module processor #(parameter bus = 32)
 	
 	ZeroExtension #(bus, 3) next_line(3'b100,fourext);
 	
-	ZeroExtension #(bus, 4) _branch_next_line(4'b1000,eightext);
 	
+	//A FIX: CHANGE 8 -> 0
+	ZeroExtension #(bus, 4) _branch_next_line(4'b0000,eightext);
+	
+	
+	//
+	//INSTRUCTION BRANCH
+	//
 	
 	Muxr #(bus) MUX_BRANCH_PC(fourext,branch_offset,SELBRANCHDIR,pc_offset);
+	
+	
 	
 	Adder #(bus) _branch_next_instruction(branch,eightext,0,branch_offset,branch_carryout);
 	
@@ -163,7 +171,15 @@ module processor #(parameter bus = 32)
 	//FIX: brach bad update of LR register.
 	Muxr4 #(bus) MUX_WRITEBACK(aluout, operandb, modified_word, pcdir, SELWB, wbdata);
 	
-	Muxr #(bus) MUX_PC_OUT(pctmp,calculated_pc_dir,SELPC,pc_in);
+	logic [bus-1:0] pc_reset;
+	
+	//
+	//INSTRUCTION BRANCH
+	//
+	
+	Muxr #(bus) MUX_PC_OUT(pctmp,calculated_pc_dir,SELPC,pc_reset);
+	
+	Muxr #(bus) MUX_PC_RESET(pc_reset,32'd0,reset,pc_in);	
 	
 	
 	//LR: the 14th register, used by the function branch and link (BL)

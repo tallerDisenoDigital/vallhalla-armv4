@@ -4,6 +4,10 @@ module CPSR #(parameter bus = 4)
 
 	logic [bus-1:0] my_memory;
 	
+	initial begin
+		my_memory = 32'b00000000000000000000000000000000;
+	end
+	
 	//always_ff is not used because the book recomends not to use flip-flops
 	//SRAMs are more compact than flipflops
 	always @(posedge clk) begin
