@@ -7,7 +7,9 @@ module ALUController #(parameter bus = 32) (input logic [3:0] ALUFUN,output logi
 	assign C = ALUFUN[1];
 	assign D = ALUFUN[0];
 	
-	assign selrev = (~A | B) & C & D ;
+	//assign selrev = (~A | B) & C & D ;
+	//selrev changed: te correct way is:
+	assign selrev = ~A & C & D ;
 	
 	assign selc1 = C & ( ~A | ~D | B);
 	
