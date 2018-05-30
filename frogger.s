@@ -1,13 +1,14 @@
 		AREA PROGRAM, CODE
         EXPORT __main
+			
 __main
-		mov r0, #0x20000000
-		b  game
-		b  stop
-	
+		bl  game
+		b   stop
+		
 game
 		mov  r4, #0x20000000	; main address
 		mov  r5, #0x0		    ; game counter
+		mov  r0, r4
 		bl   resetGame
 		b    gameLoop
 
@@ -20,6 +21,7 @@ gameLoop
 		cmp   r7, #0x0		; Player Won
 		beq   game
 		
+		mov   r0, r4
 		mov   r1, r5
 		bl    moveCreep
 		mov   r5, r0
@@ -27,8 +29,8 @@ gameLoop
 		mov   r0, r4
 		bl    movePlayer
 		
-		mov   r0, r4
-		bl    checkGame
+		;mov   r0, r4
+		;bl    checkGame
 		
 		bl    delay
 		b     gameLoop
@@ -62,7 +64,7 @@ checkLast
 		mov   r0, r3
 		pop   {lr}
 		mov   pc, lr
-
+		
 removeExit
 		push {lr}
 		sub  r2, r2, r1
@@ -92,23 +94,20 @@ delayLoop
 		mov   pc, lr
 		
 resetGame
-		push {r4, lr}
-		mov  r4, r0
+        sub  sp, sp, #0x4
+		str  lr, [sp]
 		bl   resetPlayer
-		mov  r0, r4
 		bl   resetCreep
-		pop  {r4, lr}
+		ldr  lr, [sp]
+		add  sp, sp, #0x4
 		mov  pc, lr
 		
 resetPlayer
-		push {lr}
 		mov  r1, #0x5
 		str  r1, [r0, #0x24]
 		mov  r1, #0x0
 		str  r1, [r0, #0x28]
-		bl   resetFrog
-		pop  {lr}
-		mov  pc, lr
+		b    resetFrog
 		
 resetFrog
 		mov r1, #0x0
@@ -117,7 +116,7 @@ resetFrog
 		str r1, [r0, #0x20]
 		mov pc, lr
 	
-	;	parameter 	: R0 - Truck Memory Array Address.
+	;	parameter 	: r0 - Truck Memory Array Address.
 	;	description : Clear the trucks from the screen. Apply 0 to all the registers involved.	
 resetCreep
 		mov	 r1, #0x0
@@ -134,40 +133,47 @@ resetCreepLoop
 
 resetCreepReturn
 		mov r3, #0x4924
-		str r3, [r0, 0x18]
+		str r3, [r0, #0x18]
 		mov pc, lr
 		
 		;	parameters : r0 - player address
 movePlayer
-		push  {r4, r5}
-		mov   r4, r0
-		ldr   r0, [r4, #0x1c]
-		ldr   r1, [r4, #0x20]
-		ldr   r5, [r4, #0x28]
-		;	Left
-		cmp   r5, #0x1
-		cmpeq r0, #0x0
-		subhi r0, r0, #0x1
-		;	Right
-		cmp   r5, #0x2
-		cmpeq r0, #0xe
-		addls r0, r0, #0x1
-		;	Down
-		cmp   r5, #0x3
-		cmpeq r1, #0x0
+		ldr r1, [r0, #0x1c]
+		ldr r2, [r0, #0x28]
+		cmp r2, #0x1
+		beq moveDown
+		cmp r2, #0x2
+		beq moveUp
+		ldr r1, [r0, #0x20]
+		cmp r2, #0x3
+		beq moveLeft
+		cmp r2, #0x4
+		beq moveRight
+
+moveDown
+		cmp   r1, #0x0
 		subhi r1, r1, #0x1
-		;	Up
-		cmp   r5, #0x4
-		cmpeq r1, #0x6
-		addls r1, r1, #0x1
-		
-		;str   r0, [r4, #0x1c]
-		;str   r1, [r4, #0x20]
-		;mov   r0, #0
-		;str   r0, [r4, #0x28]
-		pop   {r4, r5}
+		str   r1, [r0, #0x1c]
+		mov   pc, lr
+
+moveUp
+		cmp   r1, #0x7
+		addlo r1, r1, #0x1
+		str   r1, [r0, #0x1c]
 		mov   pc, lr
 		
+moveLeft
+		cmp   r1, #0x0
+		subhi r1, r1, #0x1
+		str   r1, [r0, #0x20]
+		mov   pc, lr
+		
+moveRight
+		cmp   r1, #0x15
+		addlo r1, r1, #0x1
+		str   r1, [r0, #0x20]
+		mov   pc, lr
+
 		;	parameters : r0 - game address
 checkCollision
 		push {r4, r5, r6, r7, r8}
@@ -200,33 +206,41 @@ checkCollisionReturn
 	;               : r1 - Move Counter
 	;	description : Clear the trucks from the screen. Apply 0 to all the registers involved.	
 moveCreep
-		push {r4, r5, r6, r7, lr}
+		sub  sp, sp, #0x10
+		str  lr, [sp, #0xc]
+		str  r6, [sp, #0x8]
+		str  r5, [sp, #0x4]
+		str  r4, [sp]
+		mov  r6, #0x0
 		mov  r4, r0
 		mov  r5, r1
-		mov  r6, #0x0
 		b	 moveCreepLoop
 		
 moveCreepLoop
 		cmp  r6, #0x5
 		bhi  moveCreepReturn
-		lsl  r7, r6, #0x2
-		ldr  r0, [r4, r7]
+		lsl  r3, r6, #0x2
+		ldr  r0, [r4, r3]
 		mov  r1, r5
-		and  r2, r6, #0x1
-		cmp  r2, #0x0
+		and  r12, r6, #0x1
+		cmp  r12, #0x0
 		bleq moveCreepLeft
-		cmp  r2, #0x1
+		cmp  r12, #0x1
 		bleq moveCreepRight
-		str  r0, [r4, r7]
+		str  r0, [r4, r3]
 		add	 r6, r6, #0x1
 		b 	 moveCreepLoop
 		
 moveCreepReturn
-		add  r5, r5, #0x1
+		add   r5, r5, #0x1
 		cmp   r5, #0x8
 		moveq r5, #0x0
 		mov   r0, r5
-		pop   {r4, r5, r6, r7, lr}
+		ldr   r4, [sp]
+		ldr   r5, [sp, #0x4]
+		ldr   r6, [sp, #0x8]
+		ldr   lr, [sp, #0xc]
+		add   sp, sp, #0x10
 		mov   pc, lr
 	
 moveCreepLeft
