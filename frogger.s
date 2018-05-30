@@ -15,45 +15,89 @@ game
 gameLoop
 		ldr   r6, [r4, #0x24]
 		ldr   r7, [r4, #0x18]
-		mov   r0, r4
 		cmp   r6, #0x0		; Player Lost
 		beq   game
 		cmp   r7, #0x0		; Player Won
 		beq   game
-		
 		mov   r0, r4
 		mov   r1, r5
 		bl    moveCreep
 		mov   r5, r0
-		
 		mov   r0, r4
 		bl    movePlayer
-		
-		;mov   r0, r4
-		;bl    checkGame
-		
+		mov   r0, r4
+		bl    checkGame
 		bl    delay
 		b     gameLoop
 
+	;	parameters : r0 - relative address
 checkGame
-		push  {lr}
-		mov   r3, r0
-		ldr   r1, [r3, #0x20]
-		cmp   r1, #0x7
-		bleq  checkLast
-		cmpne r1, #0x0
-		blhi  checkCollision
-		moveq r0, #0x0
-		mov   r1, r0
-		cmp   r1, #0x1
-		moveq r0, r3
-		bleq  looseLife
-		pop   {lr}
+		sub  sp, sp, #0x8
+		str  lr, [sp, #0x4]
+		str  r4, [sp]
+		mov  r4, r0
+		ldr  r1, [r4, #0x20]
+		cmp  r1, #0x0
+		beq  checkGameAux
+		cmp  r1, #0x7
+		beq  checkLast
+		blo  checkCollision
+		mov  r1, r0
+		mov  r0, r4
+		cmp  r1, #0x1
+		bleq looseLife
+		b    checkGameAux
+		
+checkGameAux
+		ldr   r4, [sp]
+		ldr   lr, [sp, #0x4]
+		add   sp, sp, #0x8
 		mov   pc, lr
 
+		;	parameters : r0 - game address
+checkCollision
+		sub sp, sp, #0x18
+		str lr, [sp, #0x14]
+		str r8, [sp, #0x10]
+		str r7, [sp, #0xc]
+		str r6, [sp, #0x8]
+		str r5, [sp, #0x4]
+		str r4, [sp]
+		mov r4, r0
+		ldr r5, [r0, #0x1c]
+		ldr r6, [r0, #0x20]
+		mov r7, #0x0
+		mov r8, #0x0
+		b   checkCollisionLoop
+		
+checkCollisionLoop
+		cmp  r8, #0x1
+		beq  checkCollisionReturn
+		cmp  r7, r6
+		bls  checkCollisionReturn
+		lsl  r0, r5, #0x2
+		ldr  r0, [r4, r0]
+		mov  r1, #0x1
+		lsl  r1, r1, r5
+		and  r8, r0, r1
+		add  r7, r7, #0x1
+		b    checkCollisionLoop
+		
+checkCollisionReturn
+		mov r8, r0
+		ldr r4, [sp]
+		ldr r5, [sp, #0x4]
+		ldr r6, [sp, #0x8]
+		ldr r7, [sp, #0xc]
+		ldr r8, [sp, #0x10]
+		ldr lr, [sp, #0x4]
+		add sp, sp, #0x18
+		mov pc, lr
+		
 checkLast
-		push  {lr}
-		ldr   r1, [r0, #0x1c]
+		sub   sp, sp, #0x4
+		str   lr, [sp]
+		ldr   r1, [r0, #0x1c]	; r1 = posición y
 		mov   r2, #0x1
 		lsl   r1, r2, r1
 		ldr   r2, [r0, #0x18]
@@ -62,26 +106,31 @@ checkLast
 		blne  removeExit
 		moveq r3, #0x1
 		mov   r0, r3
-		pop   {lr}
+		ldr   lr, [sp]
+		add   sp, sp, #0x4
 		mov   pc, lr
 		
 removeExit
-		push {lr}
+		sub  sp, sp, #0x4
+		str  lr, [sp]
 		sub  r2, r2, r1
 		str  r2, [r0, #0x18]
 		bl   resetFrog
 		mov  r3, #0x0
-		pop  {lr}
+		ldr  lr, [sp]
+		add  sp, sp, #0x4
 		mov  pc, lr
 		
 looseLife
-		push {lr}
-		ldr  r1, [r0, #0x24]
-		sub  r1, r1, #0x0
-		str  r1, [r0, #0x24]
-		bl   resetFrog
-		pop  {lr}
-		mov  pc, lr
+		sub sp, sp, #0x4
+		str lr, [sp]
+		ldr r1, [r0, #0x24]
+		sub r1, r1, #0x0
+		str r1, [r0, #0x24]
+		bl  resetFrog
+		ldr lr, [sp]
+		add sp, sp, #0x4
+		mov pc, lr
 
 delay
 		mov r0, #0x0
@@ -138,17 +187,19 @@ resetCreepReturn
 		
 		;	parameters : r0 - player address
 movePlayer
-		ldr r1, [r0, #0x1c]
-		ldr r2, [r0, #0x28]
-		cmp r2, #0x1
-		beq moveDown
-		cmp r2, #0x2
-		beq moveUp
-		ldr r1, [r0, #0x20]
-		cmp r2, #0x3
-		beq moveLeft
-		cmp r2, #0x4
-		beq moveRight
+		ldr   r1, [r0, #0x28]
+		cmp   r1, #0x1
+		ldreq r1, [r0, #0x1c]
+		beq   moveDown
+		cmp   r1, #0x2
+		ldreq r1, [r0, #0x1c]
+		beq   moveUp
+		cmp   r1, #0x3
+		ldreq r1, [r0, #0x20]
+		beq   moveLeft
+		cmp   r1, #0x4
+		ldreq r1, [r0, #0x20]
+		beq   moveRight
 
 moveDown
 		cmp   r1, #0x0
@@ -173,34 +224,6 @@ moveRight
 		addlo r1, r1, #0x1
 		str   r1, [r0, #0x20]
 		mov   pc, lr
-
-		;	parameters : r0 - game address
-checkCollision
-		push {r4, r5, r6, r7, r8}
-		mov r4, r0
-		ldr r5, [r0, #0x1c]
-		ldr r6, [r0, #0x20]
-		mov r7, #0x0
-		mov r8, #0x0
-		b   checkCollisionLoop
-		
-checkCollisionLoop
-		cmp  r8, #0x1
-		beq  checkCollisionReturn
-		cmp  r7, r6
-		bls  checkCollisionReturn
-		lsl  r0, r5, #0x2
-		ldr  r0, [r4, r0]
-		mov  r1, #0x1
-		lsl  r1, r1, r5
-		and  r8, r0, r1
-		add  r7, r7, #0x1
-		b    checkCollisionLoop
-		
-checkCollisionReturn
-		mov r8, r0
-		pop {r4, r5, r6, r7, r8}
-		mov pc, lr
 		
 	;	parameter 	: r0 - Truck Memory Array Address.
 	;               : r1 - Move Counter
