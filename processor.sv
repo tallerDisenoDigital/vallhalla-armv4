@@ -1,6 +1,8 @@
 module processor #(parameter bus = 32) 
-(input logic clk,reset,input logic[bus-1:0] instruction,memdatain, output logic[bus-1:0] pcdir,memdataout,memdir,output logic MRE,MWE);
+(input logic clk,reset,input logic[bus-1:0] instruction,memdatain, output logic[bus-1:0] pc_out,memdataout,memdir,output logic MRE,MWE);
 
+
+	logic[bus-1:0] pcdir;
 
 	//instruction data
 	logic [3:0] cond;
@@ -136,6 +138,7 @@ module processor #(parameter bus = 32)
 	
 	
 	//A FIX: CHANGE 8 -> 0
+	
 	ZeroExtension #(bus, 4) _branch_next_line(4'b0000,eightext);
 	
 	
@@ -145,7 +148,7 @@ module processor #(parameter bus = 32)
 	
 	Muxr #(bus) MUX_BRANCH_PC(fourext,branch_offset,SELBRANCHDIR,pc_offset);
 	
-	
+	assign pc_out = pc_in;
 	
 	Adder #(bus) _branch_next_instruction(branch,eightext,0,branch_offset,branch_carryout);
 	
@@ -172,6 +175,9 @@ module processor #(parameter bus = 32)
 	Muxr4 #(bus) MUX_WRITEBACK(aluout, operandb, modified_word, pcdir, SELWB, wbdata);
 	
 	logic [bus-1:0] pc_reset;
+	
+	
+	
 	
 	//
 	//INSTRUCTION BRANCH

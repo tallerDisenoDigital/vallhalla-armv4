@@ -16,7 +16,7 @@ module FroggerSystem_tb ();
 		#400
 		reset = 0;
 		#400;
-		for (i = 0; i < 50; i = i+1) begin:forloop
+		for (i = 0; i < 100; i = i+1) begin:forloop
 			#400 clk = ~clk;
 		end
 	end

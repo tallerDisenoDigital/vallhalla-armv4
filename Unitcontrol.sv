@@ -134,7 +134,7 @@ module Unitcontrol #(parameter bus = 4)
 		
 		//assign SELPC = is_RD_equal_to_PC & condflag;
 		//FIX: 
-		assign SELPC = ((is_RD_equal_to_PC & ~op[1] & ~op[0]) | MRE) & condflag;
+		assign SELPC = ((~op[1] & ~op[0]) | MRE) & is_RD_equal_to_PC & condflag;
 		
 		assign SELDESTPC = op[0];
 		
