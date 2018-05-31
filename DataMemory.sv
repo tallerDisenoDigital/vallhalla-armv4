@@ -7,13 +7,13 @@ module DataMemory #(parameter bus = 32, parameter memsize = 1024*4)
 	
 	always @(posedge clk) begin
 	if (MRE == 1'b1) begin
-		dataout <= my_memory[readdir];
+		dataout <= my_memory[{2'b00,readdir[bus-1:2]}];
 	end
 	end
 	
 	always @(negedge clk) begin
 	if (MWE == 1'b1) begin
-		my_memory[writedir] <= datain;
+		my_memory[{2'b00,readdir[bus-1:2]}] <= datain;
 	end
 	end
 

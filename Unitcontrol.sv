@@ -1,5 +1,6 @@
 module Unitcontrol #(parameter bus = 4) 
 	(
+	input logic reset,
 	input logic [1:0] sh,
 	input logic [1:0] CNVZI,
 	//instruction[4]
@@ -119,7 +120,7 @@ module Unitcontrol #(parameter bus = 4)
 		assign RE = ~op[1];
 		//assign WE = ((~op[0] & ~is_RD_equal_to_PC & condflag) & (~op[1] | L_mem_instruction)) | SELBL;
 		//FIX: WE for STR function
-		assign WE = ((~op[1] & ~op[0] & ~is_RD_equal_to_PC & condflag) | (~op[1] & op[0] & L_mem_instruction & ~is_RD_equal_to_PC & condflag)) | (SELBL & condflag);
+		assign WE = (((~op[1] & ~op[0] & ~is_RD_equal_to_PC & condflag) | (~op[1] & op[0] & L_mem_instruction & ~is_RD_equal_to_PC & condflag)) | (SELBL & condflag));
 		
 		//SEL NEW PC DIRECTION
 		assign SELBRANCHDIR = op[1] & condflag;

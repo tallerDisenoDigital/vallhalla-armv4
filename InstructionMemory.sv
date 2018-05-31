@@ -10,11 +10,11 @@ module InstructionMemory #(parameter bus = 32, parameter memsize = 1024*4, param
 		$readmemh(memoryfile,my_memory);
 	end
 	
-	always @(posedge clk) begin
-		if (!reset)
+	always @(negedge clk) begin
+		//if (!reset)
 			dataout <= my_memory[{2'b00,readdir[bus-1:2]}];
-		else
-			dataout <= my_memory[0];
+		//else
+		//	dataout <= my_memory[0];
 	end
 
 endmodule

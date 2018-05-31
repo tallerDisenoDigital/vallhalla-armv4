@@ -139,7 +139,7 @@ module processor #(parameter bus = 32)
 	
 	//A FIX: CHANGE 8 -> 0
 	
-	ZeroExtension #(bus, 4) _branch_next_line(4'b0000,eightext);
+	ZeroExtension #(bus, 4) _branch_next_line(4'b1000,eightext);
 	
 	
 	//
@@ -195,7 +195,7 @@ module processor #(parameter bus = 32)
 	
 	
 	
-	 Unitcontrol #(bus) _unitcontrol(sh,CNVZI, shift_type, cond, funct, op, rd, shamt5,
+	 Unitcontrol #(bus) _unitcontrol(reset,sh,CNVZI, shift_type, cond, funct, op, rd, shamt5,
 	 SELSHIFTER, SELSHIFT,CPSR_WE, SELOPERANDB, WE, RE, CSEL, MEM_OP_TYPE,MEM_MODIF, ALUFUN, SHIFTFUN,
 	 ROTTYPE, MRE, MWE, SELBL, SELDESTPC, SELPC, SELBRANCHDIR, SELWB);
 	 
